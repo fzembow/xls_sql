@@ -1,0 +1,66 @@
+html, body{
+  font-family: Helvetica, Arial, "sans-serif";
+}
+
+section#metadata{
+  
+}
+
+#filesubmit{
+  display: none;
+}
+
+section#data{
+  display: none;
+}
+
+table{
+  border:2px solid #eee;
+}
+
+th{
+  background: gray;
+  color: white;
+  padding: 5px 5px;
+}
+
+td{
+  padding: 3px 5px;
+  mix-width: 60px;
+}
+
+tr:nth-child(even){
+  background: #eee;
+}
+
+tr:hover{
+  background: #ddd;
+}
+
+#query{
+  display: none;
+}
+
+textarea#queryinput, span.query{
+  font-family: monospace;
+}
+
+textarea#queryinput{
+  width: 300px;
+}
+
+#results{
+  display: none;
+}
+
+#resultslist li{
+  margin-bottom:30px;
+}
+
+.error{
+  color: #FF7070;
+}
+
+.numrows{
+  font-style: italic;
+}
