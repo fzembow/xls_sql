@@ -14,6 +14,7 @@ section#data{
   display: none;
 }
 
+/*
 table{
   border:2px solid #eee;
 }
@@ -36,6 +37,7 @@ tr:nth-child(even){
 tr:hover{
   background: #ddd;
 }
+*/
 
 #query{
   display: none;

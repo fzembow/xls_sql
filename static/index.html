@@ -1,43 +1,47 @@
 <!doctype html>
-<html>
+<html class="no-js" lang="en">
   <head>
     <title>xls_sql</title>
     <script src="sql.js"></script>
     <script src="jquery-1.11.2.min.js"></script>
     <link rel=stylesheet href="style.css" />
+    <link rel=stylesheet href="normalize.css" />
+    <link rel=stylesheet href="foundation.min.css" />
   </head>
   <body>
 
-    <section id="metadata">
-      <form id="fileform" onsubmit="return uploadFile();">
-        <input id="fileinput" type="file" name="file">
-        <br/>
-        <input id="filesubmit" type="submit" value="Upload!">
-      </form>
-    </section>
+    <div class="row">
+      
+      <div class="small-12 columns">
+        <section id="metadata">
+          <form id="fileform" onsubmit="return uploadFile();">
+            <input id="fileinput" type="file" name="file">
+            <br/>
+            <input class="button" id="filesubmit" type="submit" value="Upload!">
+          </form>
+        </section>
 
-    <section id="data">
-      <table id="datatable">
-        <thead>
-          <tr>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
+        <section id="data">
+          <table id="datatable">
+            <thead>
+              <tr></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </section>
 
-    <section id="query">
-      <h2>SQL query</h2>
-      <textarea id="queryinput">SELECT COUNT(*) FROM data</textarea>
-      <br/>
-      <button id="runquery">Run SQL</button>
-    </section>
+        <section id="query">
+          <h2>SQL query</h2>
+          <textarea id="queryinput">SELECT COUNT(*) FROM data</textarea>
+          <button id="runquery">Run SQL</button>
+        </section>
 
-    <section id="results">
-      <h2>Results</h2>
-      <ul id="resultslist">
-      </ul>
-    </section>
+        <section id="results">
+          <h2>Results</h2>
+          <ul id="resultslist"></ul>
+        </section>
+      </div>
+    </div>
 
     <script src="app.js"></script>
   </body>

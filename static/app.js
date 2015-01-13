@@ -161,9 +161,12 @@ function logResult(query, res){
 
   var table = $("<table>");
 
-  var head = table.append("<thead>");
+  var head = $("<thead>");
+  table.append(head);
+  var headerRow = $("<tr>");
+  head.append(headerRow);
   res.columns.forEach(function(col){
-    head.append($("<th>").text(col));
+    headerRow.append($("<th>").text(col));
   });
 
   var body = table.append("<tbody>");
