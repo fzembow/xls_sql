@@ -23,9 +23,10 @@ def root():
     if file and allowed_file(file.filename):
       # TODO: Use a random filename? This is really a temp file
       filename = secure_filename(file.filename)
-      file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+      path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+      file.save(path)
       # TODO: Delete the temp file.
-      return Response(json.dumps(get_cell_contents(filename)), mimetype='application/json')
+      return Response(json.dumps(get_cell_contents(path)), mimetype='application/json')
 
 
 # Gets the contents of an excel file.
