@@ -2,20 +2,26 @@ html, body{
   font-family: Helvetica, Arial, "sans-serif";
 }
 
-section#metadata{
-}
-
-section#data{
+table.datatable{
+  min-width:100%;
+  margin-bottom:0;
 }
 
 textarea, span.query{
   font-family: monospace !important;
 }
 
-#resultslist li{
+#results ul{
+  padding:0;
+  margin:0;
+  list-style-type:none;
+}
+
+#results li{
   margin-bottom:30px;
 }
 
 .numrows{
   font-style: italic;
+  float: right;
 }

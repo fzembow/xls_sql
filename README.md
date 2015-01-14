@@ -23,6 +23,7 @@ xlrd: `easy_install xlrd`
 
 # TODOs
 
+- add support for CSV
 - better error handling on import, like detecting when there isn't a heading row.
 - possibly allow editing the heading row and the auto-detected types
 - drag+drop to upload
