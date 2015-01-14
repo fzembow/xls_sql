@@ -26,7 +26,14 @@ def root():
       path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
       file.save(path)
       # TODO: Delete the temp file.
-      return Response(json.dumps(get_cell_contents(path)), mimetype='application/json')
+
+      cells = get_cell_contents(path)
+
+      res = {
+        "columns": cells[0],
+        "values": cells[1:]
+      }
+      return Response(json.dumps(res), mimetype='application/json')
 
 
 # Gets the contents of an excel file.

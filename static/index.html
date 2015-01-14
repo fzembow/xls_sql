@@ -69,23 +69,10 @@
     <script type="text/x-handlebars" id="components/data-table">
       <table class='datatable'>
         <thead>
-          <tr>
-            {{#each heading in headings}}
-              <th>{{heading}}</th>
-            {{/each}}
-          </tr>
+          <tr></tr>
         </thead>
-        <tbody>
-          {{#each row in content}}
-          <tr>
-            {{#each cell in row}}
-              <td>{{cell}}</td>
-            {{/each}}
-          </tr>
-          {{/each}}
-        </tbody>
       </table>
-      <span class='numrows'>{{content.length}} rows</span>
+      <span class='numrows'>{{data.values.length}} rows</span>
     </script>
 
     <script src="app.js"></script>

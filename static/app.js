@@ -91,13 +91,48 @@ App.IndexController = Ember.ObjectController.extend({
   // Called when a query completes.
   onQueryResult: function(result){
     this.get('results').insertAt(0, result);
-    console.log(this.get('results'));
   },
 });
 
 
 App.DataTableComponent = Ember.Component.extend({
 
+  // The table is rendered manually and not using templates so that it's way faster.
+  willInsertElement: function(){
+
+    console.time('rendering table DOM');
+
+    var data = this.get('data');
+
+    var theadRow = this.element.querySelector("table.datatable thead tr");
+    for (var i = 0; i < data.columns.length; i++) {
+      var th = document.createElement('th');
+      th.textContent = escapeColumnName(data.columns[i]);
+      theadRow.appendChild(th);
+    }
+
+    var values = data.values;
+    var tbody = document.createElement('tbody');
+    for (var i = 0; i < values.length; i++) {
+      var row = values[i];
+      var tr = document.createElement('tr');
+      for (var j = 0; j < row.length; j++) {
+        var td = document.createElement('td');
+        td.textContent = row[j];
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+
+    var table = this.element.querySelector("table.datatable");
+    table.appendChild(tbody);
+    console.timeEnd('rendering table DOM');
+  }
+
+// TODO: Render the table DOM using the direct renderer.
+// We don't need bidirectional binding since the data doesn't change.
+// But Ember can help with other user actions on this data.
+/*
   // Splitting the data like this is likely inefficient as it leads
   // to redundant copies.
   // TODO: See if there's a more idiomatic way to do this in Ember.
@@ -113,6 +148,7 @@ App.DataTableComponent = Ember.Component.extend({
     if (data.values) return data.values;
     return data && data.length ? data.slice(1) : [];
   }.property(),
+*/
 
 });
 
@@ -121,13 +157,13 @@ App.DataTableComponent = Ember.Component.extend({
 function escapeColumnName(text){
   // TODO: Need to be far more aggressive here, replacing
   // anything that isn't a valid SQL table name.
-  return text.replace(/\s+/g, '_');
+  return text.replace(/[^A-Za-z0-9]+/g, '_');
 }
 
 // Returns an object mapping column indices to types [int, char].
 function getColumnTypes(data){
   var types = [];
-  var header = data[0];
+  var header = data.columns;
   for (var i = 0; i < header.length; i++) {
     types.push({
       name: escapeColumnName(header[i]),
@@ -151,6 +187,8 @@ function getColumnTypes(data){
 // Reference to the SQLLite database (in memory).
 var db;
 function populateDB(data){
+
+  console.time('populating DB');
   var cols = getColumnTypes(data);
 
   db = new sql.Database();
@@ -161,17 +199,22 @@ function populateDB(data){
   }).join(', ');
   sqlstr += ");";
 
-  for (var i = 1; i < data.length; i++) {
+  var values = data.values;
+  for (var i = 0; i < values.length; i++) {
     sqlstr += "INSERT INTO data VALUES (";
-    sqlstr += data[i].map(function(d){
+    sqlstr += values[i].map(function(d){
       if (typeof(d) == 'string') {
-        return '"' + d + '"';
+        return '"' + d.replace(/"/g, '""') + '"';
       }
       return d;
-    }).join(", ");
+    }
+    ).join(", ");
+
     sqlstr += ");"
   }
   db.run(sqlstr);
+
+  console.timeEnd('populating DB');
 }
 
 // Query the DB.
