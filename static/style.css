@@ -7,6 +7,10 @@ table.datatable{
   margin-bottom:0;
 }
 
+table.datatable tbody tr:hover{
+  background: #eee;
+}
+
 textarea, span.query{
   font-family: monospace !important;
 }

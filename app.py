@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 import xlrd
@@ -6,7 +7,7 @@ from werkzeug import secure_filename
 
 DEBUG = True
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), "uploads")
-ALLOWED_EXTENSIONS = set(['xls', 'xlsx'])
+ALLOWED_EXTENSIONS = set(['csv', 'xls', 'xlsx'])
 
 app = Flask(__name__, static_url_path='')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -21,23 +22,37 @@ def root():
   elif request.method == 'POST':
     file = request.files['file']
     if file and allowed_file(file.filename):
-      # TODO: Use a random filename? This is really a temp file
+      # TODO: Use a random filename? This should really be just a temp file.
       filename = secure_filename(file.filename)
-      path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-      file.save(path)
+      filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+      file.save(filepath)
       # TODO: Delete the temp file.
 
-      cells = get_cell_contents(path)
+      filetype = filename.rsplit('.', 1)[1]
+
+      if filetype == 'csv':
+        rows = get_csv_contents(filepath)
+      else:
+        rows = get_excel_contents(filepath)
 
       res = {
-        "columns": cells[0],
-        "values": cells[1:]
+        "columns": rows[0],
+        "values": rows[1:]
       }
       return Response(json.dumps(res), mimetype='application/json')
 
 
+# Gets the contents of a csv file.
+def get_csv_contents(filename):
+  f = open(filename, 'rb')
+  reader = csv.reader(f)
+  rows = list(reader)
+  f.close()
+  return rows
+
+
 # Gets the contents of an excel file.
-def get_cell_contents(filename, sheet_index=0):
+def get_excel_contents(filename, sheet_index=0):
   workbook = xlrd.open_workbook(filename)
   try:
     first_sheet_name = workbook.sheet_names()[sheet_index]

@@ -3,6 +3,7 @@ var sql = window.SQL;
 var VALID_TYPES = [
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/csv",
 ];
 
 // Ember stuff.
@@ -47,7 +48,7 @@ App.IndexController = Ember.ObjectController.extend({
         this.set("hasFile", true);
       } else {
         // TODO: Replace this with a nicer dialog.
-        alert("Only .xls and .xlsx files are currently supported");
+        alert("Only .csv, .xls, and .xlsx files are currently supported");
       }
       return false;
     },
