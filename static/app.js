@@ -5,75 +5,122 @@ var VALID_TYPES = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ];
 
-// Called when the page is initialized.
-function init(){
+// Ember stuff.
+App = Ember.Application.create();
 
-  $("#fileinput").change(function(){
-    var file = this.files[0];
-    var name = file.name;
-    var size = file.size;
-    var type = file.type;
+App.Router.map(function() {
+});
 
-    if (VALID_TYPES.indexOf(type) != -1) {
-      $("#filesubmit").fadeIn();
-    } else {
-      alert("Only .xls and .xlsx files are currently supported");
-    }
-  });
+App.Session = Ember.Object.extend({
+  query: "SELECT COUNT(*) FROM data",
+  results: Ember.A([])
+});
 
-  $("#runquery").click(function(){
-    queryDB($("#queryinput").val());
-  });
-}
+App.Result = Ember.Object.extend({
+  query: "",
+  result: "",
+  error: ""
+});
 
-
-// Called when the user uploads a new file.
-function uploadFile(){
-  var formData = new FormData($("#fileform")[0]);
-  $.ajax({
-    url: '',
-    type: 'POST',
-    success: onUploadCompleted,
-    // error: errorHandler,
-    // TODO: Handle errors.
-    data: formData,
-    cache: false,
-    contentType: false,
-    processData: false
-  });
-  return false;
-}
-
-// Called when the upload succeeds.
-function onUploadCompleted(data){
-  displayTable(data);
-  $("#data").fadeIn();
-  populateDB(data);
-  $("#query").fadeIn();
-}
-
-
-function displayTable(data){
-  var tableHeadRow = $("#datatable thead tr").html('');
-  var firstRow = data[0];
-  firstRow.forEach(function(d){
-    tableHeadRow.append($("<th>").text(escapeColumnName(d)));
-  });
-
-  var tableBody = $("#datatable tbody").html('');
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    var rowEl = $("<tr>");
-    row.forEach(function(d){
-      rowEl.append($("<td>").text(d));
-    });
-    tableBody.append(rowEl);
+App.IndexRoute = Ember.Route.extend({
+  model: function(){
+    return App.Session.create();
+  },
+  setupController : function(controller, model){
+    controller.set("model", model);
   }
-}
+});
+
+App.IndexController = Ember.ObjectController.extend({
+
+  actions: {
+    // Called when the selected file is changed.
+    fileSelectionChangedAction: function(e){
+
+      var file = $("#fileinput")[0].files[0];
+      var name = file.name;
+      var size = file.size;
+      // TODO: Reject files here that are too large.
+      var type = file.type;
+
+      if (VALID_TYPES.indexOf(type) != -1) {
+        this.set("hasFile", true);
+      } else {
+        // TODO: Replace this with a nicer dialog.
+        alert("Only .xls and .xlsx files are currently supported");
+      }
+      return false;
+    },
+
+    // Called when the file is uploaded.
+    uploadFileAction: function(){
+      var formData = new FormData($("#fileform")[0]);
+      $.ajax({
+        url: '',
+        type: 'POST',
+        success: this.onUploadCompleted.bind(this),
+        error: this.onUploadError.bind(this),
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+      return false;
+    },
+
+    // Called when the user initiates a query.
+    runQueryAction: function(){
+      queryDB(this.get('query'), this.onQueryResult.bind(this));
+      return false;
+    },
+  },
+
+  // Called when a file upload fails.
+  onUploadError: function(err){
+    // TODO: Handle errors more gracefully.
+    alert("Error in uploading file");
+  },
+
+  // Called when a file upload succeeds.
+  onUploadCompleted: function(data){
+    this.set('data', data);
+    populateDB(data);
+    $("#query").fadeIn();
+  },
+
+  // Called when a query completes.
+  onQueryResult: function(result){
+    this.get('results').insertAt(0, result);
+    console.log(this.get('results'));
+  },
+});
+
+
+App.DataTableComponent = Ember.Component.extend({
+
+  // Splitting the data like this is likely inefficient as it leads
+  // to redundant copies.
+  // TODO: See if there's a more idiomatic way to do this in Ember.
+  // That could be as easy as just creating a different object on the backend.
+  headings: function(){
+    var data = this.get("data")
+    if (data.columns) return data.columns;
+    return data && data.length ? data[0] : [];
+  }.property(),
+
+  content: function(){
+    var data = this.get("data")
+    if (data.values) return data.values;
+    return data && data.length ? data.slice(1) : [];
+  }.property(),
+
+});
 
 
 // Escapes text for use as a column name.
 function escapeColumnName(text){
+  // TODO: Need to be far more aggressive here, replacing
+  // anything that isn't a valid SQL table name.
   return text.replace(/\s+/g, '_');
 }
 
@@ -124,76 +171,31 @@ function populateDB(data){
     }).join(", ");
     sqlstr += ");"
   }
-
-  console.log(sqlstr);
   db.run(sqlstr);
 }
 
 // Query the DB.
-function queryDB(query){
-
-  console.log("Running query: " + query);
-
+function queryDB(query, callback){
   // TODO: Use db.prepare to use escaping
   try {
     var res = db.exec(query);
     if (!res || !res.length) {
-      logError(query, "No results");
+      callback({
+        query: query,
+        error: "No results"
+      });
       return;
     }
   } catch(err) {
-    logError(query, err);
+    callback({
+      query: query,
+      error: err
+    });
     return;
   }
 
-  logResult(query, res);
-}
-
-// Logs a result to the DOM
-function logResult(query, res){
-  // TODO: Why are the results actually an array?
-  var res = res[0];
-
-  // TODO: Prettier result logging.
-  var resultEl = $("<li>");
-  resultEl.append($("<span class='query'>").text(query));
-  resultEl.append($("<br>"));
-
-  var table = $("<table>");
-
-  var head = $("<thead>");
-  table.append(head);
-  var headerRow = $("<tr>");
-  head.append(headerRow);
-  res.columns.forEach(function(col){
-    headerRow.append($("<th>").text(col));
+  callback({
+    query: query,
+    data: res[0]
   });
-
-  var body = table.append("<tbody>");
-  res.values.forEach(function(row){
-    var rowEl = $("<tr>");
-    row.forEach(function(cell){
-      rowEl.append($("<td>").text(cell));
-    });
-    body.append(rowEl);
-  });
-
-  resultEl.append(table);
-  if (res.values.length > 1) {
-    resultEl.append($("<span class='numrows'>").text(res.values.length + " rows"));
-  }
-
-  $("#resultslist").prepend(resultEl);
-  $("#results").fadeIn();
 }
-
-// Logs an error to the DOM
-function logError(query, err){
-  var resultEl = $("<li>");
-  resultEl.append($("<span class='query'>").text(query));
-  resultEl.append($("<br>"));
-  resultEl.append($("<span class='error'>").text(err));
-  $("#resultslist").prepend(resultEl);
-}
-
-init();
