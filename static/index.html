@@ -34,15 +34,28 @@
         </div>
       </div>
 
-      <div class="row" id="query">
-        <div class="small-12 columns">
-        {{#if data}}
+      {{#if data}}
+        <div class="row" id="query">
           <h2>SQL query</h2>
-          {{textarea valueBinding="query"}}
-          <button {{action "runQueryAction" on="click" target="controller"}}>Run SQL</button>
-        {{/if}}
+
+          <div class="small-8 columns">
+            {{textarea valueBinding="query"}}
+            <button {{action "runQueryAction" on="click" target="controller"}}>Run SQL</button>
+          </div>
+
+          <div class="small-2 columns panel">
+            <h4>columns</h4>
+            {{#each column in data.columns}}
+              <a class="token" {{action "addToQueryAction" column on="click" target="controller"}}>{{columnName column}}</a>
+            {{/each}}
+          </div>
+
+          <div class="small-2 columns panel">
+            <h4>tables</h4>
+            <a class="token" {{action "addToQueryAction" column on="click" target="controller"}}>data</a>
+          </div>
         </div>
-      </div>
+      {{/if}}
 
       <div class="row" id="results">
         <div class="small-12 columns">
@@ -67,12 +80,20 @@
     </script>
 
     <script type="text/x-handlebars" id="components/data-table">
-      <table class='datatable'>
-        <thead>
-          <tr></tr>
-        </thead>
-      </table>
-      <span class='numrows'>{{data.values.length}} rows</span>
+      <div class="row" id="data">
+        <div class="small-10 columns">
+
+          <table class='datatable'>
+            <thead>
+              <tr></tr>
+            </thead>
+          </table>
+          <span class='numrows'>{{data.values.length}} rows</span>
+
+        </div>
+
+      </div>
+
     </script>
 
     <script src="app.js"></script>

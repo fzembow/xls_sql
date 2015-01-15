@@ -74,6 +74,12 @@ App.IndexController = Ember.ObjectController.extend({
       queryDB(this.get('query'), this.onQueryResult.bind(this));
       return false;
     },
+
+    // Adds a column or table to the query.
+    addToQueryAction: function(val){
+      this.set('query', this.get('query') + ' ' + columnName(val));
+      return false;
+    },
   },
 
   // Called when a file upload fails.
@@ -108,7 +114,7 @@ App.DataTableComponent = Ember.Component.extend({
     var theadRow = this.element.querySelector("table.datatable thead tr");
     for (var i = 0; i < data.columns.length; i++) {
       var th = document.createElement('th');
-      th.textContent = escapeColumnName(data.columns[i]);
+      th.textContent = columnName(data.columns[i]);
       theadRow.appendChild(th);
     }
 
@@ -155,11 +161,14 @@ App.DataTableComponent = Ember.Component.extend({
 
 
 // Escapes text for use as a column name.
-function escapeColumnName(text){
-  // TODO: Need to be far more aggressive here, replacing
-  // anything that isn't a valid SQL table name.
+function columnName(text){
   return text.replace(/[^A-Za-z0-9]+/g, '_');
 }
+
+Ember.Handlebars.helper('columnName', function(value, opts) {
+  return columnName(value);
+});
+
 
 // Returns an object mapping column indices to types [int, char].
 function getColumnTypes(data){
@@ -167,7 +176,7 @@ function getColumnTypes(data){
   var header = data.columns;
   for (var i = 0; i < header.length; i++) {
     types.push({
-      name: escapeColumnName(header[i]),
+      name: columnName(header[i]),
       type: 'float'
     });
   }
