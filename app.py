@@ -1,9 +1,9 @@
 import csv
 import json
 import os
+import uuid
 import xlrd
 from flask import Flask, Response, request
-from werkzeug import secure_filename
 
 DEBUG = True
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), "uploads")
@@ -22,18 +22,18 @@ def root():
   elif request.method == 'POST':
     file = request.files['file']
     if file and allowed_file(file.filename):
-      # TODO: Use a random filename? This should really be just a temp file.
-      filename = secure_filename(file.filename)
+      filetype = file.filename.rsplit('.', 1)[1]
+
+      filename = str(uuid.uuid4())
       filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
       file.save(filepath)
-      # TODO: Delete the temp file.
-
-      filetype = filename.rsplit('.', 1)[1]
 
       if filetype == 'csv':
         rows = get_csv_contents(filepath)
       else:
         rows = get_excel_contents(filepath)
+
+      os.remove(filepath)
 
       res = {
         "columns": rows[0],
