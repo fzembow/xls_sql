@@ -2,6 +2,12 @@ html, body{
   font-family: Helvetica, Arial, "sans-serif";
 }
 
+h4{
+  text-transform: uppercase;
+  padding-left: 10px !important;
+  border-left: 2px dotted #ccc;
+}
+
 table.datatable{
   min-width:100%;
   margin-bottom:0;
