@@ -30,6 +30,18 @@ textarea, span.query{
   font-family: monospace !important;
 }
 
+#query{
+  -webkit-transition: opacity 0.1s linear;
+     -moz-transition: opacity 0.1s linear;
+      -ms-transition: opacity 0.1s linear;
+          transition: opacity 0.1s linear;
+}
+
+#query.busy{
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 #query div.panel, #query textarea{
   height: 200px;
 }

@@ -59,6 +59,7 @@ App.IndexController = Ember.ObjectController.extend({
     // Called when the file is uploaded.
     uploadFileAction: function(){
       var formData = new FormData($("#fileform")[0]);
+      console.time('upload');
       $.ajax({
         url: '',
         type: 'POST',
@@ -74,12 +75,13 @@ App.IndexController = Ember.ObjectController.extend({
 
     // Called when the user initiates a query.
     runQueryAction: function(){
-      queryDB(this.get('query'), this.onQueryResult.bind(this));
+      this.execUserQuery(this.get('query'));
       return false;
     },
 
     // Adds a column or table to the query.
     addToQueryAction: function(val){
+      // TODO: This should be conscious of cursor position in the textarea.
       this.set('query', this.get('query') + ' ' + columnName(val));
       return false;
     },
@@ -87,21 +89,119 @@ App.IndexController = Ember.ObjectController.extend({
 
   // Called when a file upload fails.
   onUploadError: function(err){
+    console.timeEnd('upload');
     // TODO: Handle errors more gracefully.
     alert("Error in uploading file");
   },
 
   // Called when a file upload succeeds.
   onUploadCompleted: function(data){
+    console.timeEnd('upload');
+
     this.set('data', data);
-    populateDB(data);
-    $("#query").fadeIn();
+    console.time('populate DB');
+    this.sqlWorker.postMessage({
+      id: 'populate',
+      action: 'exec',
+      sql: getDBInitStatement(data)
+    });
+
+    this.set('pendingWorkerRequest', true);
   },
 
-  // Called when a query completes.
-  onQueryResult: function(result){
-    this.get('results').insertAt(0, result);
+  // SQLLite WebWorker
+  sqlWorker: new Worker("js/worker.sql.js"),
+
+  // Sets up communication with the worker on initialization.
+  initWorker: function(){
+
+    var worker = this.sqlWorker;
+    // When the first message is recieved, and the DB has been
+    // initialized, let the app listen to query results.
+    worker.onmessage = (function(m){
+      console.log("DB Initialized");
+      worker.onmessage = this.onWorkerResult.bind(this);
+    }).bind(this);
+
+    worker.onerror = this.onWorkerError.bind(this);
+
+    // Initiate the database.
+    worker.postMessage({
+      id: 'open',
+      action: 'open'
+    });
+  }.on('init'),
+
+  // Executes an SQL statement on the worker on behalf of the user.
+  execUserQuery: function(sql){
+
+    if (this.pendingWorkerRequest) {
+      console.log("Error: there's already a pending worker request");
+      return;
+    }
+
+    var queryId = ++this.queryId;
+    this.userQueries[queryId] = sql;
+    console.time('execute query ' + queryId);
+
+    this.sqlWorker.postMessage({
+      id: queryId,
+      action: 'exec',
+      sql: sql
+    });
+
+    this.set('pendingWorkerRequest', true);
   },
+
+  // Called when a query result is returned by the worker.
+  onWorkerResult: function(message){
+    this.set('pendingWorkerRequest', false);
+
+    var queryId = message.data.id;
+    if (!this.userQueries[queryId]) {
+      console.timeEnd('populate DB');
+      return;
+    }
+
+    console.timeEnd('execute query ' + queryId);
+
+    var query = this.userQueries[queryId];
+
+    var results = message.data.results;
+    if (results.length){
+      this.get('results').insertAt(0, {
+        query: query,
+        data: results[0],
+      });
+    } else {
+      this.get('results').insertAt(0, {
+        query: query,
+        error: "No results",
+      });
+    }
+  },
+
+  // Called when the worker hits an error.
+  onWorkerError: function(e){
+    this.set('pendingWorkerRequest', false);
+    var queryId = this.queryId;
+    console.timeEnd('execute query ' + queryId);
+
+    this.get('results').insertAt(0, {
+      query: this.userQueries[queryId],
+      error: e.message
+    });
+  },
+
+  // Associate query IDs with the statements used to create them
+  userQueries: {},
+
+  // How many userQueries have been run.
+  queryId: 0,
+
+  // Whether there's a pending request.
+  pendingWorkerRequest: false
+
 });
 
 
@@ -134,11 +234,10 @@ App.DataTableComponent = Ember.Component.extend({
   // Whether the table is currently collapsed.
   isCollapsed: true,
 
-
   // The table is rendered manually and not using templates so that it's way faster.
   willInsertElement: function(){
 
-    console.time('rendering table DOM');
+    console.time('rendering table');
 
     var data = this.get('data');
 
@@ -163,13 +262,12 @@ App.DataTableComponent = Ember.Component.extend({
       if (i >= ROWS_TO_SHOW) {
         tr.classList.add('hidden');
       }
-
       tbody.appendChild(tr);
     }
 
     var table = this.element.querySelector("table.datatable");
     table.appendChild(tbody);
-    console.timeEnd('rendering table DOM');
+    console.timeEnd('rendering table');
   }
 });
 
@@ -209,15 +307,10 @@ function getColumnTypes(data){
 }
 
 // Reference to the SQLLite database (in memory).
-var db;
-function populateDB(data){
-
-  console.time('populating DB');
+function getDBInitStatement(data){
   var cols = getColumnTypes(data);
 
-  db = new sql.Database();
-
-  sqlstr = "CREATE TABLE data ("
+  var sqlstr = "CREATE TABLE data ("
   sqlstr += cols.map(function(c){
     return c.name + " " + c.type;
   }).join(', ');
@@ -233,36 +326,7 @@ function populateDB(data){
       return d;
     }
     ).join(", ");
-
     sqlstr += ");"
   }
-  db.run(sqlstr);
-
-  console.timeEnd('populating DB');
-}
-
-// Query the DB.
-function queryDB(query, callback){
-  // TODO: Use db.prepare to use escaping
-  try {
-    var res = db.exec(query);
-    if (!res || !res.length) {
-      callback({
-        query: query,
-        error: "No results"
-      });
-      return;
-    }
-  } catch(err) {
-    callback({
-      query: query,
-      error: err
-    });
-    return;
-  }
-
-  callback({
-    query: query,
-    data: res[0]
-  });
+  return sqlstr;
 }

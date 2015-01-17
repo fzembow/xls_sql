@@ -2,7 +2,6 @@
 <html class="no-js" lang="en">
   <head>
     <title>xls_sql</title>
-    <script src="js/sql.js"></script>
     <script src="js/jquery-1.11.2.min.js"></script>
     <script src="js/handlebars-v2.0.0.js"></script>
     <script src="js/ember-1.9.1.js"></script>
@@ -36,28 +35,33 @@
       </div>
 
       {{#if data}}
-        <div class="row" id="query">
+        <div id="query" {{bind-attr class="pendingWorkerRequest:busy :row"}}>
           <div class="small-12 columns">
-            <h4>SQL query</h4>
-          </div>
-        </div>
 
-        <div class="row" id="query">
-          <div class="small-8 columns">
-            {{textarea valueBinding="query"}}
-            <button {{action "runQueryAction" on="click" target="controller"}}>Run SQL</button>
-          </div>
+            <div class="row">
+              <div class="small-12 columns">
+                <h4>SQL query</h4>
+              </div>
+            </div>
 
-          <div class="small-2 columns panel">
-            <h5>columns</h5>
-            {{#each column in data.columns}}
-              <a class="token" {{action "addToQueryAction" column on="click" target="controller"}}>{{columnName column}}</a>
-            {{/each}}
-          </div>
+            <div class="row">
+              <div class="small-8 columns">
+                {{textarea valueBinding="query"}}
+                <button {{action "runQueryAction" on="click" target="controller"}}>Run SQL</button>
+              </div>
 
-          <div class="small-2 columns panel">
-            <h5>tables</h5>
-            <a class="token" {{action "addToQueryAction" column on="click" target="controller"}}>data</a>
+              <div class="small-2 columns panel">
+                <h5>columns</h5>
+                {{#each column in data.columns}}
+                  <a class="token" {{action "addToQueryAction" column on="click" target="controller"}}>{{columnName column}}</a>
+                {{/each}}
+              </div>
+
+              <div class="small-2 columns panel">
+                <h5>tables</h5>
+                <a class="token" {{action "addToQueryAction" column on="click" target="controller"}}>data</a>
+              </div>
+            </div>
           </div>
         </div>
       {{/if}}
