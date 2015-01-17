@@ -13,9 +13,6 @@ app = Flask(__name__, static_url_path='')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-# TODO: Remove me
-app.debug = True
-
 @app.route("/", methods=['POST', 'GET'])
 def root():
   if request.method == 'GET':
