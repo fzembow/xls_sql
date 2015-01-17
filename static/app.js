@@ -6,6 +6,9 @@ var VALID_TYPES = [
   "text/csv",
 ];
 
+// How many rows to show in a table by default.
+var ROWS_TO_SHOW = 6;
+
 // Ember stuff.
 App = Ember.Application.create();
 
@@ -104,6 +107,34 @@ App.IndexController = Ember.ObjectController.extend({
 
 App.DataTableComponent = Ember.Component.extend({
 
+  actions: {
+    collapseAction: function(){
+      var tbody = this.element.querySelector("table.datatable tbody");
+      var rows = tbody.children;
+      for (var i = ROWS_TO_SHOW; i < rows.length; i++) {
+        rows[i].classList.add('hidden');
+      }
+      this.set('isCollapsed', true);
+    },
+
+    expandAction: function(){
+      var hiddenRows = this.element.querySelectorAll("table.datatable tbody tr.hidden");
+      for (var i = 0; i < hiddenRows.length; i++) {
+        hiddenRows[i].classList.remove('hidden');
+      }
+      this.set('isCollapsed', false);
+    },
+  },
+
+  // Whether this table has been truncated and can be expanded.
+  isCollapsible: function(){
+    return this.get('data').values.length >= ROWS_TO_SHOW;
+  }.property('data'),
+
+  // Whether the table is currently collapsed.
+  isCollapsed: true,
+
+
   // The table is rendered manually and not using templates so that it's way faster.
   willInsertElement: function(){
 
@@ -128,6 +159,11 @@ App.DataTableComponent = Ember.Component.extend({
         td.textContent = row[j];
         tr.appendChild(td);
       }
+
+      if (i >= ROWS_TO_SHOW) {
+        tr.classList.add('hidden');
+      }
+
       tbody.appendChild(tr);
     }
 
@@ -135,28 +171,6 @@ App.DataTableComponent = Ember.Component.extend({
     table.appendChild(tbody);
     console.timeEnd('rendering table DOM');
   }
-
-// TODO: Render the table DOM using the direct renderer.
-// We don't need bidirectional binding since the data doesn't change.
-// But Ember can help with other user actions on this data.
-/*
-  // Splitting the data like this is likely inefficient as it leads
-  // to redundant copies.
-  // TODO: See if there's a more idiomatic way to do this in Ember.
-  // That could be as easy as just creating a different object on the backend.
-  headings: function(){
-    var data = this.get("data")
-    if (data.columns) return data.columns;
-    return data && data.length ? data[0] : [];
-  }.property(),
-
-  content: function(){
-    var data = this.get("data")
-    if (data.values) return data.values;
-    return data && data.length ? data.slice(1) : [];
-  }.property(),
-*/
-
 });
 
 

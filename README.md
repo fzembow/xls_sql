@@ -16,8 +16,8 @@ The first row is interpreted to be the column names.
 
 # Dependencies
 
-Flask: `easy_install Flask`
-xlrd: `easy_install xlrd`
+- Flask: `easy_install Flask`
+- xlrd: `easy_install xlrd`
 
 # Usage
 
@@ -39,4 +39,3 @@ xlrd: `easy_install xlrd`
 - structured query input? Can autocomplete column and table names, highlight syntax errors, etc.
 - client-side csv parsing (should be easy)
 - client-side xlsx parsing (possibly through emscripten)? it would be nice to get rid of the server entirely.
-- deploy to Heroku

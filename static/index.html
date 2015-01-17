@@ -13,17 +13,18 @@
   </head>
   <body>
 
-
     <script type="text/x-handlebars" data-template-name="index" id="application">
       <div class="row" id="metadata">
-        <div class="small-12 columns">
-          <form id="fileform" {{action "uploadFileAction" on="submit" target="controller"}}>
+        <form id="fileform" {{action "uploadFileAction" on="submit" target="controller"}}>
+          <div class="small-6 columns">
             <input id="fileinput" type="file" name="file" {{action "fileSelectionChangedAction" on="change" target="controller"}}>
+          </div>
+          <div class="small-6 columns">
             {{#if hasFile}}
-              <input class="button" type="submit" value="Upload!">
+              <input class="button tiny expand" type="submit" value="Upload!">
             {{/if}}
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
 
       <div class="row" id="data">
@@ -36,8 +37,12 @@
 
       {{#if data}}
         <div class="row" id="query">
-          <h2>SQL query</h2>
+          <div class="small-12 columns">
+            <h2>SQL query</h2>
+          </div>
+        </div>
 
+        <div class="row" id="query">
           <div class="small-8 columns">
             {{textarea valueBinding="query"}}
             <button {{action "runQueryAction" on="click" target="controller"}}>Run SQL</button>
@@ -88,6 +93,15 @@
               <tr></tr>
             </thead>
           </table>
+          {{#if isCollapsible}}
+            <span class='collapseToggle'>
+            {{#if isCollapsed}}
+              <a {{action "expandAction" on="click"}}>(show all)</a>
+            {{else}}
+              <a {{action "collapseAction" on="click"}}>(collapse)</a>
+            {{/if}}
+            </span>
+          {{/if}}
           <span class='numrows'>{{data.values.length}} rows</span>
 
         </div>

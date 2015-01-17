@@ -11,6 +11,15 @@ table.datatable tbody tr:hover{
   background: #eee;
 }
 
+table.datatable tbody td{
+  line-height: 1rem;
+  padding: 0.3rem 0.625rem;
+}
+
+table.datatable tbody tr.hidden{
+  display: none;
+}
+
 textarea, span.query{
   font-family: monospace !important;
 }
@@ -29,7 +38,8 @@ textarea, span.query{
   margin-bottom:30px;
 }
 
-.numrows{
+.numrows, .collapseToggle{
   font-style: italic;
+  margin-left: 10px;
   float: right;
 }
