@@ -2,6 +2,8 @@
 
 A simple page to analyze excel files using SQL syntax. Of course, you can do a lot with COUNTIF(), pivot tables, and other excel functions but I find that SQL syntax is often simpler.
 
+Hosted at [xls-sql.herokuapp.com](https://xls-sql.herokuapp.com/)
+
 In brief, you can import data...
 
 ![input data](docs/data.png)
