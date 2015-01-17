@@ -33,7 +33,6 @@ The first row is interpreted to be the column names.
 - ability to sort by column headers
 - ability to filter by column headers
 - much better UI / look and feel
-- populate the database using a webworker
 - structured query input? Can autocomplete column and table names, highlight syntax errors, etc.
 - client-side csv parsing (should be easy)
 - client-side xlsx parsing (possibly through emscripten)? it would be nice to get rid of the server entirely.

@@ -306,7 +306,7 @@ function getColumnTypes(data){
   return types;
 }
 
-// Reference to the SQLLite database (in memory).
+// Gets the SQL to populate a table.
 function getDBInitStatement(data){
   var cols = getColumnTypes(data);
 
@@ -318,6 +318,8 @@ function getDBInitStatement(data){
 
   var values = data.values;
   for (var i = 0; i < values.length; i++) {
+    // TODO: When multiple uploads are allowed,
+    // stop hardcoding "data" as the table name.
     sqlstr += "INSERT INTO data VALUES (";
     sqlstr += values[i].map(function(d){
       if (typeof(d) == 'string') {
