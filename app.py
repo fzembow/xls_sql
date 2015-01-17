@@ -1,19 +1,17 @@
 import csv
 import json
 import os
+import sys
 import uuid
 import xlrd
 from flask import Flask, Response, request
 
-DEBUG = True
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), "uploads")
 ALLOWED_EXTENSIONS = set(['csv', 'xls', 'xlsx'])
 
 app = Flask(__name__, static_url_path='')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-if DEBUG:
-  app.debug = True
 
 @app.route("/", methods=['POST', 'GET'])
 def root():
@@ -78,4 +76,6 @@ def allowed_file(filename):
   return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 if __name__ == "__main__":
+  if len(sys.argv) == 2 and sys.argv[1] == "debug":
+    app.debug = True
   app.run()
